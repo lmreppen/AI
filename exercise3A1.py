@@ -1,7 +1,6 @@
 from sys import *
 import traceback
-from AStar import AStar
-from AStar import calcHeuristicCost
+from AStar2 import AStar
 
 
 
@@ -26,14 +25,13 @@ try:
             else:
                 board[j][i] = 1;
                 if inChar == 'A':
-                    startPosition.append(i)
-                    startPosition.append(j)
+                    startPositionX = i
+                    startPositionY = j
                 elif inChar == 'B':
-                    endPosition.append(i)
-                    endPosition.append(j)
-
+                    endPositionX = i
+                    endPositionY = j
         j += 1
-    ShortestPath = AStar(board, startPosition, endPosition)
+    ShortestPath = AStar(board, startPositionX,startPositionY,endPositionX,endPositionY)
     print ShortestPath
 except:
     traceback.print_exc(file=stderr)
