@@ -158,7 +158,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         for action in gameState.getLegalActions():
             nextState = gameState.generateSuccessor(0, action)
             prevScore = score
-            score = max(score, minvalue(nextState, self.depth, 1, numberOfGhosts))
+            score = max(score, minvalue(nextState, self.depth, 1, numberOfGhosts)) #Dette er vel den største/eneste endringen? HUsker ikke prøvde så mye forskjellig
             if score > prevScore:
                 bestAction = action
         return bestAction
