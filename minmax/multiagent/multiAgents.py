@@ -154,6 +154,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         numberOfGhosts = gameState.getNumAgents() - 1
         score = -float("inf")
+        bestAction = ""
         for action in gameState.getLegalActions():
             nextState = gameState.generateSuccessor(0, action)
             prevScore = score
@@ -174,20 +175,19 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        
         def maxValue(gameState, alpha, beta, depth):
-            if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            if gameState.isWin() or gameState.isLose() or depth == 0:
                 return self.evaluationFunction(gameState)
             v = -float("Inf")
             for action in gameState.getLegalActions(0):
                 v = max(v, minValue(gameState.generateSuccessor(0,action),alpha, beta, depth, 1))
-                if v >= beta:
+                if v > beta:
                     return v
                 alpha = max(alpha, v)
             return v
 
         def minValue(gameState, alpha, beta, depth,agentIndex):
-            if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            if gameState.isWin() or gameState.isLose() or depth == 0:
                 return self.evaluationFunction(gameState)
 
             numberOfGhosts = gameState.getNumAgents() - 1
@@ -195,23 +195,27 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
             for action in gameState.getLegalActions(agentIndex):
                 if agentIndex == numberOfGhosts:
-                    v = min(v, maxValue(gameState.generateSuccessor(agentIndex,action),alpha, beta, depth+1))
+                    v = min(v, maxValue(gameState.generateSuccessor(agentIndex,action),alpha, beta, depth-1))
                 else:
                     v = min(v, minValue(gameState.generateSuccessor(agentIndex,action),alpha, beta, depth, agentIndex + 1))
-                if v <= alpha:
+                if v < alpha:
                     return v
                 beta = min(beta, v)
             return v
 
         alpha = -float("Inf")
         beta = float("Inf")
-        v = -float("Inf")
+        v = alpha
+        bestAction = ""
         for action in gameState.getLegalActions(0):
             prevV = v
-            v = maxValue(gameState.generateSuccessor(0,action) , alpha, beta, 0)
+            v = max(v, minValue(gameState.generateSuccessor(0,action) , alpha, beta, self.depth,1))
+            alpha = max(alpha, v)
             if v > prevV:
                 bestAction = action
-
+            if v >= beta:
+                return bestAction
+            alpha = max(alpha, v)
         return bestAction
         util.raiseNotDefined()
 
