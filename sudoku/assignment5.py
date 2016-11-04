@@ -163,27 +163,21 @@ class CSP:
         #pass
         while queue :
             # Pop the first element
-            a = queue.pop()
-            xi = a[0]
-            xj = a[1]
-            #(xi,xj) = queue.pop()
 
+            (xi,xj) = queue.pop()
 
             # Call revise on element
             if self.revise(assignment, xi,xj):
                 # If lenght of assignment[i] is zero, return false
                 if len(assignment[xi]) == 0:
                     return False
-                # For all arcs in neighboring arcs not in assignment[j]
+                #for all arcs in neighboring arcs not in assignment[j]
                 # Same as neighboring_arcs - assignment[j]
-                # for item in self.get_all_neighboring_arcs(xi):
-                #     if item not in assignment[xj]:
-                #         for xk in item:
-                #             queue.append(xk)
 
-                for arc in [item for item in self.get_all_neighboring_arcs(xi) if item not in assignment[xj]]:
-                    # Append to queue
-                    queue.append(arc)
+                for xk in self.get_all_neighboring_arcs(xi):
+                        if xk not in assignment[xj]:
+                            queue.append(xk)
+
         return True
 
     def revise(self, assignment, i, j):
