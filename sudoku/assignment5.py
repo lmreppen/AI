@@ -253,9 +253,15 @@ def print_sudoku_solution(solution):
         if row == 2 or row == 5:
             print '------+-------+------'
 
+boards = ["easy.txt", "medium.txt", "hard.txt", "veryhard.txt"]
 
-csp = create_sudoku_csp("hard.txt");
-results = csp.backtracking_search()
-print csp.numBacktrackCalled
-print csp.numBacktrackFailed
-print_sudoku_solution(results)
+for board in boards:
+    print board
+    csp = create_sudoku_csp(board)
+    results = csp.backtracking_search()
+    print "Backtrack called: " + str(csp.numBacktrackCalled)
+    print "Backtrack failed: " + str(csp.numBacktrackFailed)
+    print
+    print_sudoku_solution(results)
+    print "-------"
+    print
