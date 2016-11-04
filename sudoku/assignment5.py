@@ -114,9 +114,10 @@ class CSP:
         # TODO: IMPLEMENT THIS
         self.numBacktrackCalled += 1
 
+        #Returns result if sudoku board is finished if the lenght of possible values is 1
         finished = True
-        for value in assignment:
-            if len(assignment[value]) > 1:
+        for var in assignment:
+            if len(assignment[var]) > 1:
                 finished = False
         if finished == True:
             return assignment
@@ -144,14 +145,14 @@ class CSP:
         of legal values has a length greater than one.
         """
         # TODO: IMPLEMENT THIS
-        returnValue = None
-        smallestLenght = 10
-        for unassignedValue in assignment:
-            if len(assignment[unassignedValue]) > 1:
-                if len(assignment[unassignedValue]) < smallestLenght:
-                    returnValue = unassignedValue
-                    smallestLenght = len(assignment[unassignedValue])
-        return returnValue
+        returnVariable = None
+        minPossible = 10
+        for unassignedVariable in assignment:
+            if len(assignment[unassignedVariable]) > 1: # Checks if variable has a solution.
+                if len(assignment[unassignedVariable]) < minPossible: #Choses the variable with the least possible amount of values.
+                    returnVariable = unassignedVariable
+                    minPossible = len(assignment[unassignedVariable])
+        return returnVariable
 
     def inference(self, assignment, queue):
         """The function 'AC-3' from the pseudocode in the textbook.
@@ -162,20 +163,15 @@ class CSP:
         # TODO: IMPLEMENT THIS
         #pass
         while queue :
-            # Pop the first element
-
             (xi,xj) = queue.pop()
 
-            # Call revise on element
             if self.revise(assignment, xi,xj):
-                # If lenght of assignment[i] is zero, return false
                 if len(assignment[xi]) == 0:
                     return False
-                #for all arcs in neighboring arcs not in assignment[j]
-                # Same as neighboring_arcs - assignment[j]
 
+                #appends all neighbours that's not xj.
                 for xk in self.get_all_neighboring_arcs(xi):
-                        if xk not in assignment[xj]:
+                        if xk not in assignment[xj]: #checks if xj
                             queue.append(xk)
 
         return True
