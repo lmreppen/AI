@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+from sys import *
 import copy
 import itertools
 
@@ -14,6 +14,9 @@ class CSP:
         # self.constraints[i][j] is a list of legal value pairs for
         # the variable pair (i, j)
         self.constraints = {}
+
+        self.numBacktrackCalled = 0
+        self.numBacktrackFailed = 0
 
     def add_variable(self, name, domain):
         """Add a new variable to the CSP. 'name' is the variable name
@@ -39,7 +42,7 @@ class CSP:
 
     def get_all_neighboring_arcs(self, var):
         """Get a list of all arcs/constraints going to/from variable
-        'var'. The arcs/constraints are represented as in get_all_arcs().
+        'var'. The arcs/constraints are represented as in get_all_arcs|().
         """
         return [ (i, var) for i in self.constraints[var] ]
 
@@ -110,11 +113,34 @@ class CSP:
         iterations of the loop.
         """
         # TODO: IMPLEMENT THIS
+        self.numBacktrackCalled += 1
 
-        pass
-        if assignment == 0:
+        finished = True
+        for value in assignment.keys():
+            if len(assignment[value]) > 1:
+                finished = False
+        if finished == True:
             return assignment
-        
+
+        var = self.select_unassigned_variable(assignment)
+
+        for value in assignment[var]:
+            copiedAssignment = copy.deepcopy(assignment)
+            if value in self.domains[var]:
+                copiedAssignment[var] = value
+                inferences = self.inference(copiedAssignment, self.get_all_neighboring_arcs(var))
+                if inferences:
+                    result = self.backtrack(copiedAssignment)
+                    if result is not False:
+                        return result
+            # copiedAssignment.remove(var)
+            # copiedAssignment.remove(inferences)
+
+        self.numBacktrackFailed += 1
+        return False
+
+
+
 
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -123,31 +149,29 @@ class CSP:
         of legal values has a length greater than one.
         """
         # TODO: IMPLEMENT THIS
-        pass
-        for unassignedValue in assignment:
+        for unassignedValue in assignment.keys():
             if len(unassignedValue) > 1:
-                return unassignedValue 
-
+                return unassignedValue
+        return None
 
     def inference(self, assignment, queue):
         """The function 'AC-3' from the pseudocode in the textbook.
         'assignment' is the current partial assignment, that contains
-        the lists of legal values for each undecided variable. 'queue'
+        the lists o f legal values for each undecided variable. 'queue'
         is the initial queue of arcs that should be visited.
         """
         # TODO: IMPLEMENT THIS
-        pass
-        while queue.length  > 0:
-            (xi,xj) = queue.pop() #WHAT?
-            #xi = temp[0]
-            #xj = temp[1]
-            if revise(assignment, xi, xj):
-                if len(domains[xi]) == 0:
+        #pass
+        while len(queue)  > 0:
+            (xi,xj) = queue.pop()
+
+            if self.revise(assignment, xi, xj):
+                if len(self.domains[xi]) == 0:
                     return False
-                for xk in get_all_neighboring_arcs(xi):
+                for xk in self.get_all_neighboring_arcs(xi):
                     if xk != (xi,xj):
-                        queue.add(xk)
-                    
+                        queue.append(xk)
+
         return True
 
     def revise(self, assignment, i, j):
@@ -159,16 +183,16 @@ class CSP:
         between i and j, the value should be deleted from i's list of
         legal values in 'assignment'.
         """
-        
+
         #TODO: IMPLEMENT THIS
         # pass
         revised = False
         for x in assignment[i]:
-            for y in assignment[j]:
-                if (x,y) not in constraints[i][j]:
-                    assignment[i].remove(x)
-                    revised = True
+            if len(assignment[j]) == 1 and assignment[j][0] == x:
+                assignment[i].remove(x)
+                revised = True
         return revised
+
 def create_map_coloring_csp():
     """Instantiate a CSP representing the map coloring problem from the
     textbook. This can be useful for testing your CSP solver as you
@@ -216,7 +240,7 @@ def create_sudoku_csp(filename):
 
 def print_sudoku_solution(solution):
     """Convert the representation of a Sudoku solution as returned from
-    the method CSP.backtracking_search(), into a human readable
+    the method CSP.backtracking_search(), into a huma   n readable
     representation.
     """
     for row in range(9):
@@ -227,4 +251,9 @@ def print_sudoku_solution(solution):
         print
         if row == 2 or row == 5:
             print '------+-------+------'
-print 'fuckOFfffffffffffffffffffffffffffff'
+
+csp = create_sudoku_csp("medium.txt");
+results = csp.backtracking_search()
+print csp.numBacktrackCalled
+print csp.numBacktrackFailed
+print_sudoku_solution(csp.backtracking_search())
