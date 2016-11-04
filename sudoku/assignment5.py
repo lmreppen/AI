@@ -116,7 +116,7 @@ class CSP:
         self.numBacktrackCalled += 1
 
         finished = True
-        for value in assignment.keys():
+        for value in assignment:
             if len(assignment[value]) > 1:
                 finished = False
         if finished == True:
@@ -126,18 +126,14 @@ class CSP:
 
         for value in assignment[var]:
             copiedAssignment = copy.deepcopy(assignment)
-            if value in self.domains[var]:
-                copiedAssignment[var] = value
-                inferences = self.inference(copiedAssignment, self.get_all_neighboring_arcs(var))
-                if inferences:
-                    result = self.backtrack(copiedAssignment)
-                    if result is not False:
-                        return result
-            # copiedAssignment.remove(var)
-            # copiedAssignment.remove(inferences)
-
+            copiedAssignment[var] = [value]
+            inferences = self.inference(copiedAssignment, self.get_all_neighboring_arcs(var))
+            if inferences:
+                result = self.backtrack(copiedAssignment)
+                if result is not False:
+                    return result
         self.numBacktrackFailed += 1
-        return False
+        return None
 
 
 
@@ -149,10 +145,14 @@ class CSP:
         of legal values has a length greater than one.
         """
         # TODO: IMPLEMENT THIS
-        for unassignedValue in assignment.keys():
-            if len(unassignedValue) > 1:
-                return unassignedValue
-        return None
+        returnValue = None
+        smallest_lenght = 10
+        for unassignedValue in assignment:
+            if len(assignment[unassignedValue]) > 1:
+                if len(assignment[unassignedValue]) < smallest_lenght:
+                    returnValue = unassignedValue
+                    smallest_lenght = len(assignment[unassignedValue])
+        return returnValue
 
     def inference(self, assignment, queue):
         """The function 'AC-3' from the pseudocode in the textbook.
@@ -252,7 +252,7 @@ def print_sudoku_solution(solution):
         if row == 2 or row == 5:
             print '------+-------+------'
 
-csp = create_sudoku_csp("medium.txt");
+csp = create_sudoku_csp("hard.txt");
 results = csp.backtracking_search()
 print csp.numBacktrackCalled
 print csp.numBacktrackFailed
