@@ -1,9 +1,10 @@
 #!/usr/bin/python
-from sys import *
+
 import copy
 import itertools
 
 class CSP:
+
     def __init__(self):
         # self.variables is a list of the variable names in the CSP
         self.variables = []
@@ -15,9 +16,8 @@ class CSP:
         # the variable pair (i, j)
         self.constraints = {}
 
-        self.numBacktrackCalled = 0
-        self.numBacktrackFailed = 0
-
+        self.back_track_counter = 0
+        self.failiure_counter = 0
     def add_variable(self, name, domain):
         """Add a new variable to the CSP. 'name' is the variable name
         and 'domain' is a list of the legal values for the variable.
@@ -42,7 +42,7 @@ class CSP:
 
     def get_all_neighboring_arcs(self, var):
         """Get a list of all arcs/constraints going to/from variable
-        'var'. The arcs/constraints are represented as in get_all_arcs|().
+        'var'. The arcs/constraints are represented as in get_all_arcs().
         """
         return [ (i, var) for i in self.constraints[var] ]
 
@@ -112,31 +112,26 @@ class CSP:
         assignments and inferences that took place in previous
         iterations of the loop.
         """
-        # TODO: IMPLEMENT THIS
-        self.numBacktrackCalled += 1
+        # Keep track of how many time backtrack has been called
+        self.back_track_counter += 1
 
-        finished = True
-        for value in assignment:
-            if len(assignment[value]) > 1:
-                finished = False
-        if finished == True:
-            return assignment
-
+        # Return is task is complete
+        if self.is_complete(assignment): return assignment
+        # Get next unassigned variable
         var = self.select_unassigned_variable(assignment)
-
+        # For each value in assignment[var]
         for value in assignment[var]:
-            copiedAssignment = copy.deepcopy(assignment)
-            copiedAssignment[var] = [value]
-            inferences = self.inference(copiedAssignment, self.get_all_neighboring_arcs(var))
-            if inferences:
-                result = self.backtrack(copiedAssignment)
-                if result is not False:
-                    return result
-        self.numBacktrackFailed += 1
+            #
+            assignment2 = copy.deepcopy(assignment)
+            assignment2[var] = [value]
+            inference = self.inference(assignment2, self.get_all_neighboring_arcs(var))
+            if inference:
+                # add inference to assignment
+                result = self.backtrack(assignment2)
+                if result: return result
+            # remove { var = value } and inference from assignment
+        self.failiure_counter += 1
         return None
-
-
-
 
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -144,34 +139,42 @@ class CSP:
         in 'assignment' that have not yet been decided, i.e. whose list
         of legal values has a length greater than one.
         """
-        # TODO: IMPLEMENT THIS
-        returnValue = None
+        # Create variables to hold the best element and its lenght
+        best_element = None
         smallest_lenght = 10
-        for unassignedValue in assignment:
-            if len(assignment[unassignedValue]) > 1:
-                if len(assignment[unassignedValue]) < smallest_lenght:
-                    returnValue = unassignedValue
-                    smallest_lenght = len(assignment[unassignedValue])
-        return returnValue
+        # Iterate over all elements
+        for element in assignment:
+            # If this element does not have a solution
+            if len(assignment[element]) > 1:
+                # If element lenght is smaller than smallest so far
+                if len(assignment[element]) < smallest_lenght:
+                    #choose the best solution of the remaining variables
+                    best_element = element
+                    smallest_lenght = len(assignment[element])
+        # Return the best element
+        return best_element
 
     def inference(self, assignment, queue):
         """The function 'AC-3' from the pseudocode in the textbook.
         'assignment' is the current partial assignment, that contains
-        the lists o f legal values for each undecided variable. 'queue'
+        the lists of legal values for each undecided variable. 'queue'
         is the initial queue of arcs that should be visited.
         """
-        # TODO: IMPLEMENT THIS
-        #pass
-        while queue:
-            (xi,xj) = queue.pop()
+        # While the queue has elements
+        while(queue):
+            # Pop the first element
+            i,j = queue.pop(0)
+            # Call revise on element
+            if self.revise(assignment, i,j):
+                # If lenght of assignment[i] is zero, return false
+                if len(assignment[i]) == 0: return False
+                # For all arcs in neighboring arcs not in assignment[j]
+                # Same as neighboring_arcs - assignment[j]
 
-            if self.revise(assignment, xi, xj):
-                if len(self.domains[xi]) == 0:
-                    return False
-                for xk in self.get_all_neighboring_arcs(xi):
-                    if xk != (xi,xj):
-                        queue.append(xk)
-
+                for arc in [item for item in self.get_all_neighboring_arcs(i) if item not in assignment[j]]:
+                    # Append to queue
+                    queue.append(arc)
+        # Return True
         return True
 
     def revise(self, assignment, i, j):
@@ -183,15 +186,19 @@ class CSP:
         between i and j, the value should be deleted from i's list of
         legal values in 'assignment'.
         """
-
-        #TODO: IMPLEMENT THIS
-        # pass
         revised = False
         for x in assignment[i]:
+            #delete variable in domain if neighbours have a alue on the board
             if len(assignment[j]) == 1 and assignment[j][0] == x:
                 assignment[i].remove(x)
                 revised = True
         return revised
+
+    def is_complete(self, assignment):
+        #checking if all variables in the domain are on the board
+        for element in assignment:
+            if len(assignment[element]) > 1: return False
+        return True
 
 def create_map_coloring_csp():
     """Instantiate a CSP representing the map coloring problem from the
@@ -246,7 +253,6 @@ def print_sudoku_solution(solution):
     for row in range(9):
         for col in range(9):
             print solution['%d-%d' % (row, col)][0],
-
             if col == 2 or col == 5:
                 print '|',
         print
@@ -254,8 +260,10 @@ def print_sudoku_solution(solution):
             print '------+-------+------'
 
 
-csp = create_sudoku_csp("hard.txt");
-results = csp.backtracking_search()
-print csp.numBacktrackCalled
-print csp.numBacktrackFailed
-print_sudoku_solution(results)
+
+if __name__ == "__main__":
+    csp = create_sudoku_csp("hard.txt")
+    solution = csp.backtracking_search()
+    print_sudoku_solution(solution)
+    print csp.back_track_counter
+    print csp.failiure_counter
